@@ -17,7 +17,17 @@ Route::get('/test', function () {
    });
 });
 
+use Facades\App\Hk01\Payment\Gateway;
+
 Route::get('/dev', function (){
+
+
+
+    dd(Gateway::make('stripe'));
+
+    $card = '4615304456677579';
+
+    dd(\App\Hk01\Payment\CreditCard::parse($card)->checkLuhn());
 
     \Illuminate\Cache\RedisTaggedCache::macro('getAll', function () {
         $fullKey = $this->referenceKey($this->tags->getNamespace(), static::REFERENCE_KEY_FOREVER);
@@ -59,3 +69,4 @@ Route::get('/', function () {
 
 
 Route::post('/payment', 'PaymentController@store')->name('payment.store');
+Route::post('/query', 'PaymentController@query')->name('payment.query');

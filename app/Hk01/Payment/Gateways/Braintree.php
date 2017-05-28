@@ -3,10 +3,12 @@
 namespace App\Hk01\Payment\Gateways;
 
 use App\Hk01\Payment\Contracts\GatewayContract;
+use App\Hk01\Payment\Gateways\Responses\BraintreeResponse;
 use App\Hk01\Payment\Order;
 use Braintree_ClientToken;
 use Braintree_Configuration;
 use Braintree_Transaction;
+use Illuminate\Support\Arr;
 
 /**
  * Class Braintree
@@ -34,22 +36,22 @@ class Braintree implements GatewayContract
         return $this->clientToken ?: $this->clientToken = Braintree_ClientToken::generate();
     }
 
-    public function purchase(Order $order)
+    public function purchase(array $data = [])
     {
         $result = Braintree_Transaction::sale([
-            'orderId' => $order->orderId,
-            'amount' => number_format($order->price, 2),
-            'merchantAccountId' => strtolower($order->currency),
+            'orderId' => Arr::get($data, 'transaction_id'),
+            'amount' => number_format(Arr::get($data, 'amount'), 2, '.', ''),
+            'merchantAccountId' => strtolower(Arr::get($data, 'currency')),
             'customer' => [
-                'lastName' => $order->customerName,
-                'phone' => $order->customerPhone,
+                'lastName' => Arr::get($data, 'customer_name'),
+                'phone' => Arr::get($data, 'customer_phone'),
             ],
             'creditCard' => [
-                'cardholderName' => $order->ccname,
-                'number' => $order->ccnumber,
-                'cvv' => $order->cvv,
-                'expirationMonth' => $order->ccmonth,
-                'expirationYear' => $order->ccyear,
+                'cardholderName' => Arr::get($data, 'ccname'),
+                'number' => Arr::get($data, 'ccnumber'),
+                'cvv' => Arr::get($data, 'cvv'),
+                'expirationMonth' => Arr::get($data, 'ccmonth'),
+                'expirationYear' => Arr::get($data, 'ccyear'),
             ],
             //'paymentMethodNonce' => nonceFromTheClient,
             'options' => [
@@ -57,7 +59,7 @@ class Braintree implements GatewayContract
             ]
         ]);
 
-        return $result;
+        return new BraintreeResponse($result);
     }
 
 }

@@ -25,16 +25,26 @@ class PaymentStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'customerName' => ['required', 'string', 'min:6'],
-            'customerPhone' => ['required', 'string', 'min:8'],
-            'currency' => ['required', 'string', Rule::in(['HKD', 'USD', 'AUD', 'EUR', 'JPY', 'CNY'])],
-            'price' => ['required', 'numeric', 'regex:/^\d+\.\d{2}$/'],
+            'customer_name' => ['required', 'string', 'min:6'],
+            'customer_phone' => ['required', 'string', 'min:8'],
+            'currency' => ['required', 'string', Rule::in(['HKD', 'USD', 'AUD', 'EUR', 'JPY', 'CNY']), 'currency'],
+            'amount' => ['required', 'numeric', 'regex:/^\d+\.\d{2}$/'],
 
             'ccname' => ['required', 'string'],
-            'ccnumber' => ['required', ],
-            'ccmonth' => ['required', ],
+            'ccnumber' => ['required', 'ccnumber'],
+            'ccmonth' => ['required', 'ccdate'],
             'ccyear' => ['required', ],
             'cvv' => ['required', 'cvv'],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'cvv' => 'CVV is not correct.',
+            'ccdate' => 'Date format is invalid',
+            'ccnumber' => 'Credit Card Number is invalid',
+            'currency' => 'AMEX is possible to use only for USD',
         ];
     }
 }

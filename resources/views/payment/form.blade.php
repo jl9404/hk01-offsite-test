@@ -3,6 +3,14 @@
 @section('content')
 
     <div class="container">
+
+        <form id="query-form" action="{{ route('payment.query') }}" method="POST" class="form-inline">
+            {{ csrf_field() }}
+            {{ Form::text('customer_name', null, ['class' => 'form-control']) }}
+            {{ Form::text('transaction_id', null, ['class' => 'form-control']) }}
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
         @if (count($errors) > 0)
             <div class="alert alert-danger">
                 <ul>
@@ -12,16 +20,16 @@
                 </ul>
             </div>
         @endif
-    <form action="{{ route('payment.store') }}" method="POST">
+    <form id="payment-form" action="{{ route('payment.store') }}" method="POST">
         {{ csrf_field() }}
         <div class="form-group row">
             <div class="col-sm-6">
-                <label for="customerName">Customer Name</label>
-                {{ Form::text('customerName', null, ['class' => 'form-control']) }}
+                <label for="customer_name">Customer Name</label>
+                {{ Form::text('customer_name', null, ['class' => 'form-control']) }}
             </div>
             <div class="col-sm-6">
-                <label for="customerPhone">Customer Phone</label>
-                {{ Form::text('customerPhone', null, ['class' => 'form-control']) }}
+                <label for="customer_phone">Customer Phone</label>
+                {{ Form::text('customer_phone', null, ['class' => 'form-control']) }}
             </div>
         </div>
         <div class="form-group row">
@@ -31,7 +39,7 @@
                     <div class="input-group-addon">
                         {{ Form::select('currency', array_combine($currency = ['HKD', 'USD', 'AUD', 'EUR', 'JPY', 'CNY'], $currency), null) }}
                     </div>
-                    {{ Form::number('price', null, ['class' => 'form-control', 'placeholder' => '10.00',  'step' => '0.01', 'min' => '0.01']) }}
+                    {{ Form::number('amount', null, ['class' => 'form-control', 'placeholder' => '10.00',  'step' => '0.01', 'min' => '0.01']) }}
                 </div>
             </div>
         </div>

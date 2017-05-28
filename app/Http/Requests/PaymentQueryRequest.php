@@ -24,8 +24,8 @@ class PaymentQueryRequest extends FormRequest
     public function rules()
     {
         return [
-            'customerName' => ['required'],
-            'orderId' => ['required'],
+            'customer_name' => ['required'],
+            'transaction_id' => ['required'],
         ];
     }
 }
