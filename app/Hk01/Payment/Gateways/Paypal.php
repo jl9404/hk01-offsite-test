@@ -5,11 +5,9 @@ namespace App\Hk01\Payment\Gateways;
 use App\Hk01\Payment\Contracts\GatewayContract;
 use App\Hk01\Payment\CreditCard;
 use App\Hk01\Payment\Gateways\Responses\PaypalResponse;
-use App\Hk01\Payment\Order;
+use PayPal\Api\Address;
 use PayPal\Api\Amount;
 use PayPal\Api\FundingInstrument;
-use PayPal\Api\Item;
-use PayPal\Api\ItemList;
 use PayPal\Api\Payer;
 use PayPal\Api\Payment;
 use PayPal\Api\PaymentCard;
@@ -30,6 +28,11 @@ class Paypal implements GatewayContract
                 array_get($config, 'client_secret')
             )
         );
+    }
+
+    public function getContext()
+    {
+        return $this->context;
     }
 
     public function purchase(array $data = [])
@@ -63,6 +66,8 @@ class Paypal implements GatewayContract
 
         $transaction = new Transaction();
         $transaction->setAmount($amount)
+            ->setCustom(json_encode(array_except($data, ['ccname', 'ccnumber', 'ccmonth', 'ccyear', 'cvv'])))
+            ->setDescription(array_get($data, 'customer_name') . ' ' . array_get($data, 'customer_phone'))
             ->setInvoiceNumber(array_get($data, 'transaction_id'));
 
         $payment = new Payment();

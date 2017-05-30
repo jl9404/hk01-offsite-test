@@ -1,7 +1,8 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +31,7 @@ class Transaction extends Model
         static::saved(function (Transaction $transaction) {
             Cache::driver('redis')
                 ->tags(['orders', snake_case($transaction->customer_name)])
-                ->forever($transaction->transaction_id, $transaction);
+                ->forever($transaction->transaction_id, encrypt(serialize($transaction)));
         });
     }
 
@@ -38,9 +39,18 @@ class Transaction extends Model
     {
         $transaction = Cache::tags(['orders', snake_case($customerName)])->get($transactionId);
         if (empty($transaction)) {
-            throw new ModelNotFoundException();
+            throw new ModelNotFoundException;
         }
-        return $transaction;
+        try {
+            return unserialize(decrypt($transaction));
+        } catch (DecryptException $e) { // try to refresh the corrupted cache
+            $transaction = (new self)->where([
+                'customer_name' => $customerName,
+                'transaction_id' => $transactionId,
+            ])->first();
+            $transaction->fireModelEvent('saved', false);
+            return $transaction;
+        }
     }
 
     public function getAmountAttribute($value)
@@ -50,6 +60,6 @@ class Transaction extends Model
 
     public function setAmountAttribute($value)
     {
-        return $this->attributes['amount'] =  floatval($value) * 100;
+        return $this->attributes['amount'] =  intval(floatval($value) * 100);
     }
 }

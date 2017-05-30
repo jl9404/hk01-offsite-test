@@ -4,5 +4,5 @@ namespace App\Hk01\Payment\Contracts;
 
 interface FactoryContract
 {
-    public function make($driver);
+    public function driver($driver);
 }

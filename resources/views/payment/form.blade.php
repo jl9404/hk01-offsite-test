@@ -3,14 +3,6 @@
 @section('content')
 
     <div class="container">
-
-        <form id="query-form" action="{{ route('payment.query') }}" method="POST" class="form-inline">
-            {{ csrf_field() }}
-            {{ Form::text('customer_name', null, ['class' => 'form-control']) }}
-            {{ Form::text('transaction_id', null, ['class' => 'form-control']) }}
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-
         @if (count($errors) > 0)
             <div class="alert alert-danger">
                 <ul>

@@ -10,18 +10,25 @@ use Exception;
 class CreditCardValidator
 {
 
-    public function validateCurrency($attribute, $value, $parameters, $validator)
+    public function validateCurrency($attribute, $value, $parameters, Validator $validator)
     {
         $number = array_get($validator->getData(), 'ccnumber');
-        if (empty($number) || CreditCard::parse($number)->getType() == 'amex' && $value != 'USD') {
+        if (! empty($number) && CreditCard::parse($number)->getType() == 'amex' && $value != 'USD') {
             return false;
         }
         return true;
     }
 
-    public function validateNumber($attribute, $value, $parameters, $validator)
+    public function validateNumber($attribute, $value, $parameters, Validator $validator)
     {
-        return CreditCard::parse($value)->isValid();
+        if (! ($creditCard = CreditCard::parse($value))->isValid()) {
+            return false;
+        }
+        $currency = array_get($validator->getData(), 'currency');
+        if (! empty($currency) && $creditCard->getType() == 'unknown' && in_array($currency, ['USD', 'EUR', 'AUD'])) {
+            return false;
+        }
+        return true;
     }
 
     public function validateExpDate($attribute, $value, $parameters, Validator $validator)

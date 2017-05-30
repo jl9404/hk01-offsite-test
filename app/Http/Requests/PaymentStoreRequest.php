@@ -43,7 +43,7 @@ class PaymentStoreRequest extends FormRequest
         return [
             'cvv' => 'CVV is not correct.',
             'ccdate' => 'Date format is invalid',
-            'ccnumber' => 'Credit Card Number is invalid',
+            'ccnumber' => 'Credit Card Number is invalid or not supported.',
             'currency' => 'AMEX is possible to use only for USD',
         ];
     }

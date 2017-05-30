@@ -2,18 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Hk01\Payment\CreditCard;
-use App\Hk01\Payment\Gateways\Braintree;
-use App\Hk01\Payment\Gateways\Paypal;
-use App\Hk01\Payment\Order;
 use App\Http\Requests\PaymentQueryRequest;
 use App\Http\Requests\PaymentStoreRequest;
-use App\Transaction;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Facades\App\Hk01\Payment\Gateway;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
-use PayPal\Api\Payment;
 
 /**
  * Class PaymentController
@@ -30,9 +24,9 @@ class PaymentController extends Controller
         $transactionId = Carbon::now()->format('YmdHis') . random_int(1000, 9999);
 
         if (in_array($request->currency, ['USD', 'EUR', 'AUD'])) {
-            $gateway = Gateway::make('paypal');
+            $gateway = Gateway::driver('paypal');
         } else if (in_array($request->currency, ['HKD', 'JPY', 'CNY'])) {
-            $gateway = Gateway::make('braintree');
+            $gateway = Gateway::driver('braintree');
         }
 
         if (empty($gateway)) {
@@ -40,8 +34,6 @@ class PaymentController extends Controller
         }
 
         $result = $gateway->purchase(array_merge($request->validated(), ['transaction_id' => $transactionId]));
-
-        $transaction = null;
 
         $response = [
             'success' => $result->isSuccessful(),

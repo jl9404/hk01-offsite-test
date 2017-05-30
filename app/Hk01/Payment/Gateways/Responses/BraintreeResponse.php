@@ -37,6 +37,6 @@ class BraintreeResponse implements ResponseContract
 
     public function getErrors()
     {
-        return $this->data->message;
+        return str_replace("\n", '<br />', $this->data->message);
     }
 }

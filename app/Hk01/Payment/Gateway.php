@@ -14,7 +14,7 @@ class Gateway implements FactoryContract
 
     protected $store;
 
-    public function make($driver)
+    public function driver($driver)
     {
         return $this->store[$driver] = $this->get($driver);
     }
