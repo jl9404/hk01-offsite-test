@@ -45,6 +45,7 @@ class PaymentController extends Controller
             $transaction->transaction_id = $transactionId;
             $transaction->reference_id = $result->getReferenceId();
             $transaction->paid_at = $result->getPaidTimestamp();
+            $transaction->debug = serialize($result->getDebugData());
             $transaction->save();
             $response['order'] = $transaction;
             Session::regenerateToken();

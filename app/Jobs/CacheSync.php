@@ -32,7 +32,7 @@ class CacheSync implements ShouldQueue
      */
     public function handle()
     {
-        if (!empty ($transaction_id)) {
+        if (! empty($transaction_id)) {
             $transaction = Transaction::where('transaction_id', $transaction_id)->get();
             if ($transaction->isNotCached()) {
                 $transaction->save();

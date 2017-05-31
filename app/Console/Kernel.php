@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Jobs\CacheSync;
+use App\Jobs\PaypalSync;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -24,8 +26,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        $schedule->call(function () {
+            dispatch_now(new PaypalSync());
+            dispatch_now(new CacheSync());
+        })->daily();
     }
 
     /**

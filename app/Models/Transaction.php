@@ -8,23 +8,40 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Class Transaction
+ * @package App\Models
+ */
 class Transaction extends Model
 {
+    /**
+     * @var array
+     */
     protected $fillable = [
         'transaction_id', 'reference_id',
         'customer_name', 'customer_phone', 'currency', 'amount',
+        'paid_at',
     ];
 
+    /**
+     * @var array
+     */
     protected $dates = [
         'paid_at',
         'created_at',
         'updated_at',
     ];
 
+    /**
+     * @var array
+     */
     protected $hidden = [
         'id', 'reference_id', 'paid_at',
     ];
 
+    /**
+     * Register events to cache and remove cache
+     */
     protected static function boot()
     {
         parent::boot();
@@ -42,6 +59,11 @@ class Transaction extends Model
         });
     }
 
+    /**
+     * Check whether the record is cached
+     *
+     * @return bool
+     */
     public function isCached()
     {
         if ($this->exists && Cache::tags(['orders', snake_case($this->customer_name)])->has($this->transaction_id)) {
@@ -50,11 +72,23 @@ class Transaction extends Model
         return false;
     }
 
+    /**
+     * Check whether the record is not cached
+     *
+     * @return bool
+     */
     public function isNotCached()
     {
         return ! $this->isCached();
     }
 
+    /**
+     * Find record from cache
+     *
+     * @param $customerName
+     * @param $transactionId
+     * @return mixed
+     */
     public static function findFromCache($customerName, $transactionId)
     {
         $transaction = Cache::tags(['orders', snake_case($customerName)])->get($transactionId);
@@ -71,13 +105,15 @@ class Transaction extends Model
         }
     }
 
+    /**
+     * Amount attribute mutator
+     *
+     * @param $value
+     * @return string
+     */
     public function getAmountAttribute($value)
     {
-        return number_format(($value / 100), 2, '.', '');
+        return number_format($value, 2, '.', '');
     }
 
-    public function setAmountAttribute($value)
-    {
-        return $this->attributes['amount'] =  intval(floatval($value) * 100);
-    }
 }

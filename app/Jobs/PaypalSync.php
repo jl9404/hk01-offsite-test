@@ -33,8 +33,8 @@ class PaypalSync implements ShouldQueue
      */
     public function handle()
     {
-        $query = ['count' => 1000/*, 'sort_order' => 'desc'*/];
-        if (! empty($lastSyncTime = Cache::driver('file')->get('paypal.lastSyncTime'))) {
+        $query = ['count' => 1000];
+        if (! empty($lastSyncTime = Cache::get('paypal.lastSyncTime'))) {
             $query['start_time'] = str_replace('+00:00', 'Z', $lastSyncTime->timezone(0)->toRfc3339String());
         }
 
@@ -76,6 +76,6 @@ class PaypalSync implements ShouldQueue
             }
         } while(! empty($records->next_id));
 
-        Cache::driver('file')->forever('paypal.lastSyncTime', \Carbon\Carbon::now());
+        Cache::forever('paypal.lastSyncTime', \Carbon\Carbon::now());
     }
 }

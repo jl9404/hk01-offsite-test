@@ -11,6 +11,7 @@ use PayPal\Api\FundingInstrument;
 use PayPal\Api\Payer;
 use PayPal\Api\Payment;
 use PayPal\Api\PaymentCard;
+use PayPal\Api\PaymentExecution;
 use PayPal\Api\Transaction;
 use PayPal\Exception\PayPalConnectionException;
 
@@ -37,9 +38,10 @@ class Paypal implements GatewayContract
 
     public function purchase(array $data = [])
     {
-        $name = array_get($data, 'ccname');
-        $lastName = last($name = explode(' ', $name));
-        $firstName = array_pop($name);
+        $name = explode(' ', trim(array_get($data, 'ccname')));
+        $lastName = last($name);
+        array_pop($name);
+        $firstName = $name;
         if (is_array($firstName)) {
             $firstName = implode(' ', $firstName);
         }
