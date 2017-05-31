@@ -1,51 +1,106 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+# HK01 Offsite Test (Backend)
 
-## About Laravel
+In this document, 
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
+## Installation
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+It is recommended to use [Homestead](https://laravel.com/docs/master/homestead) to deploy this application as it provides all the essential software with simple configuration and installation.
+ 
+Software Requirements:
+- Nginx 1.11.9
+- PHP 7.1.3-3
+- MySQL 5.7.17
+- Redis 3.2.8
+- Ngrok 2.2.3
+- Composer
+- Git
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications. A superb combination of simplicity, elegance, and innovation give you tools you need to build any application with which you are tasked.
+Installation commands:
+```bash
+git clone https://github.com/jl9404/hk01-offsite-test.git
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-## Learning Laravel
+Please review the database and redis settings in `.env` file, please make sure it is correct and then run the following command.
+```bash
+php artisan migrate
+```
 
-Laravel has the most extensive and thorough documentation and video tutorial library of any modern web application framework. The [Laravel documentation](https://laravel.com/docs) is thorough, complete, and makes it a breeze to get started learning the framework.
+## Bonus
 
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 900 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
+### 1. Consider how to add additional payment gateways;
 
-## Laravel Sponsors
+The `Gateway` class use factory pattern with the extend feature, so new payment gateway can be implemented easily. Also, there are `GatewayContract` and `ResponseContract` for gateway and gateway response which is inspired from the design of [Contract](https://laravel.com/docs/master/contracts) to enforce the standard of each gateway.
 
-We would like to extend our thanks to the following sponsors for helping fund on-going Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](http://patreon.com/taylorotwell):
+```php
+use Facades\App\Hk01\Payment\Gateway;
 
-- **[Vehikl](http://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Styde](https://styde.net)**
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
+// to add Stripe gateway
+Gatway::extend('stripe', function () {
+    return new Stripe();
+});
+```
 
-## Contributing
+### 2. Consider how to guarantee payment record are found in your database and Paypal;
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
+There are two ways (active and passive approch) to keep the payment records in synchronization with Paypal.
 
-## Security Vulnerabilities
+#### Active Approch
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+placeholder
 
-## License
+#### Passive Approch
 
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+placeholder
+
+### 3. Consider cache may expired when check order record;
+
+placeholder
+
+### 4. Consider the data encryption for the payment record query
+
+As the redis server does not provide any encryption mechanism (unless using [stunnel](https://www.digitalocean.com/community/tutorials/how-to-encrypt-traffic-to-redis-with-stunnel-on-ubuntu-16-04)), it is better to encrypt the payload in the cache. Laravel provides `encrypt()` and `decrypt()` helper to simplify the en/decryption operation.
+
+Saving Model with encrypted cache automatically
+```php
+static::saved(function (Transaction $transaction) {
+    Cache::driver('redis')
+        ->tags(['orders', snake_case($transaction->customer_name)])
+        ->forever($transaction->transaction_id, encrypt(serialize($transaction)));
+});
+```
+Retrieve cache with decryption
+```php
+public static function findFromCache($customerName, $transactionId)
+{
+    $transaction = Cache::tags(['orders', snake_case($customerName)])->get($transactionId);
+    if (empty($transaction)) {
+        throw new ModelNotFoundException;
+    }
+    try {
+        return unserialize(decrypt($transaction));
+    } catch (DecryptException $e) { // try to refresh the corrupted cache
+        return tap((new self)->where([
+            'customer_name' => $customerName,
+            'transaction_id' => $transactionId,
+        ])->first())->save();
+    }
+}
+```
+
+### 5. Consider how to handle security for saving credit cards.
+
+Saving card holder data is very [risky](https://stackoverflow.com/questions/3002189/best-practices-to-store-creditcard-information-into-database?answertab=votes#tab-top) and it is not encourage to do it without following [PCI-DSS](https://www.pcisecuritystandards.org/pci_security/). In order to save the card holder data, it involves a brunch of security controls from disk encryption to table column encryption. In this application, card holder data is not stored, but I will illustrate how to do it in the following section. By the [PCI Data Storage Guildline](https://www.pcisecuritystandards.org/pdfs/pci_fs_data_storage.pdf), only PAN, card holder name, service code and expiration can be stored, so the cvv must not be stored in the database. There are special requirements for PAN that the additional productions (e.g. truncation and strong cryptography) should be implemented. Laravel Eloquent's mutator and accessor will be useful and suitable in this scenario.
+
+```php
+public function setCcnumberAttribute($value) {
+    return $this->attributes['ccnumber'] = encrypt(substr($value, 0, -4));
+}
+
+public function getCcnumberAttribute($value) {
+    return decrypt($attribute);
+}
+```
