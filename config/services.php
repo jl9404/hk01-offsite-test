@@ -30,12 +30,13 @@ return [
     ],
 
     'stripe' => [
-        'model' => App\User::class,
+        'model' => App\Models\User::class,
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
     ],
 
     'paypal' => [
+        'environment' => 'sandbox',
         'client_id' => 'ASTlBkP8njEizlY3tB8wPwkG-SmJjgUJonNktt2LylsUMtoMetQ20TRVccPDufSnI5RPeZXJwxfbYuV6',
         'client_secret' => 'EAydhog-NNPm-1yivRpageXknbEkqSOCcDmJx8z1r-NacKSlcwbrs8-Wh_nMI2mQc9Sx3kmZWK18CMMS',
     ],

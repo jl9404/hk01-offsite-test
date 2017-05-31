@@ -30,7 +30,7 @@ class PaymentStoreRequest extends FormRequest
             'currency' => ['required', 'string', Rule::in(['HKD', 'USD', 'AUD', 'EUR', 'JPY', 'CNY']), 'currency'],
             'amount' => ['required', 'numeric', 'regex:/^\d+\.\d{2}$/'],
 
-            'ccname' => ['required', 'string'],
+            'ccname' => ['required', 'string', 'ccname'],
             'ccnumber' => ['required', 'ccnumber'],
             'ccmonth' => ['required', 'ccdate'],
             'ccyear' => ['required', ],
@@ -41,6 +41,7 @@ class PaymentStoreRequest extends FormRequest
     public function messages()
     {
         return [
+            'ccname' => 'Card holder name is invalid',
             'cvv' => 'CVV is not correct.',
             'ccdate' => 'Date format is invalid',
             'ccnumber' => 'Credit Card Number is invalid or not supported.',

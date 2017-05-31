@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Hk01\Payment\Gateway;
+use Illuminate\Cache\RedisTaggedCache;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
@@ -19,9 +20,26 @@ class AppServiceProvider extends ServiceProvider
     {
         FormRequest::macro('validated', function (){
             // Backport to 5.4 only() -> intersect()
+            /* @var $this FormRequest */
             return $this->intersect(array_keys($this->container->call([$this, 'rules'])));
         });
 
+        RedisTaggedCache::macro('getKeys', function () {
+            /* @var $this RedisTaggedCache */
+            $fullKey = $this->referenceKey($this->tags->getNamespace(), static::REFERENCE_KEY_FOREVER);
+            $redis = $this->store->connection();
+            return collect($redis->smembers($fullKey));
+        });
+
+        RedisTaggedCache::macro('getAll', function () {
+            /* @var $this RedisTaggedCache */
+            $redis = $this->store->connection();
+            return $this->getKeys()->map(function ($key) use ($redis) {
+                return unserialize($redis->get($key));
+            });
+        });
+
+        Validator::extend('ccname', 'App\Validators\CreditCardValidator@validateName');
         Validator::extend('currency', 'App\Validators\CreditCardValidator@validateCurrency');
         Validator::extend('ccnumber', 'App\Validators\CreditCardValidator@validateNumber');
         Validator::extend('ccdate', 'App\Validators\CreditCardValidator@validateExpDate');
@@ -37,7 +55,9 @@ class AppServiceProvider extends ServiceProvider
     {
         if ($this->app->environment() !== 'production') {
             // IDE helper
-            $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
+            if (class_exists('\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider')) {
+                $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
+            }
         }
 
         $this->app->singleton(Gateway::class, function ($app) {
@@ -45,7 +65,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Facades\App\Hk01\Payment\Gateway::extend('stripe', function () {
-            return 'xd';
+            return 'this is a customize driver';
         });
 
     }

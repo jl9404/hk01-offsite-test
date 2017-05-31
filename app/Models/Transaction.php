@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\PaypalSync;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -33,6 +34,25 @@ class Transaction extends Model
                 ->tags(['orders', snake_case($transaction->customer_name)])
                 ->forever($transaction->transaction_id, encrypt(serialize($transaction)));
         });
+
+        static::deleting(function (Transaction $transaction) {
+            Cache::driver('redis')
+                ->tags(['orders', snake_case($transaction->customer_name)])
+                ->forget($transaction->transaction_id);
+        });
+    }
+
+    public function isCached()
+    {
+        if ($this->exists && Cache::tags(['orders', snake_case($this->customer_name)])->has($this->transaction_id)) {
+            return true;
+        }
+        return false;
+    }
+
+    public function isNotCached()
+    {
+        return ! $this->isCached();
     }
 
     public static function findFromCache($customerName, $transactionId)
@@ -44,12 +64,10 @@ class Transaction extends Model
         try {
             return unserialize(decrypt($transaction));
         } catch (DecryptException $e) { // try to refresh the corrupted cache
-            $transaction = (new self)->where([
+            return tap((new self)->where([
                 'customer_name' => $customerName,
                 'transaction_id' => $transactionId,
-            ])->first();
-            $transaction->fireModelEvent('saved', false);
-            return $transaction;
+            ])->first())->save();
         }
     }
 

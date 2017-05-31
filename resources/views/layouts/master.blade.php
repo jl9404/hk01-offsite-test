@@ -11,8 +11,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
     <style>
         body {
-            background-color: #FAFAFA;
+            /*background-color: #FAFAFA;*/
         }
+
+        nav {
+            margin-bottom: 10px;
+        }
+
         .input-group-addon > select {
             background-color: transparent;
             border: none;
@@ -30,10 +35,10 @@
         <a class="navbar-brand" href="/">{{ config('app.name', 'Application') }}</a>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item">
+                <li class="nav-item {{ Request::routeIs('payment.form') ? 'active' : '' }}">
                     <a class="nav-link" href="/">Make Payment</a>
                 </li>
-                <li class="nav-item">
+                <li class="nav- {{ Request::routeIs('payment.query') ? 'active' : '' }}">
                     <a class="nav-link" href="/query">Check Payment Record</a>
                 </li>
             </ul>
@@ -55,8 +60,6 @@ $(function() {
       'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
     }
   });
-
-
 
   function renderErrs(json, target)
   {
@@ -92,6 +95,7 @@ $(function() {
 
   $('#query-form').submit(function  (e) {
     var $this = $(this), payload = $this.serialize(), $table = $('#query-table');
+    e.preventDefault();
     inputToggle($this);
     $table.hide();
     $.post($this.attr('action'), payload, function (response) {
@@ -109,19 +113,13 @@ $(function() {
       }
       inputToggle($this);
     });
-
     return false;
   });
 
   $('#payment-form').submit(function (e) {
-    return true;
-
     var $this = $(this), payload = $('#payment-form').serialize();
-
     e.preventDefault();
-
     inputToggle($this);
-
     $.post($this.attr('action'), payload, function (response) {
       if (response.success === true) {
         swal({
@@ -147,7 +145,6 @@ $(function() {
       errHandler(xhr, $this);
       inputToggle($this);
     });
-
     return false;
   });
 });

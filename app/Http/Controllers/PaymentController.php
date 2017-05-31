@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PaymentQueryRequest;
 use App\Http\Requests\PaymentStoreRequest;
+use App\Jobs\CacheSync;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Facades\App\Hk01\Payment\Gateway;
@@ -47,6 +48,7 @@ class PaymentController extends Controller
             $transaction->save();
             $response['order'] = $transaction;
             Session::regenerateToken();
+            dispatch(new CacheSync($transactionId));
         } else {
             $response['message'] = $result->getErrors();
         }

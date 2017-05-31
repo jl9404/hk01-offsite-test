@@ -33,7 +33,7 @@ class PaypalSync implements ShouldQueue
      */
     public function handle()
     {
-        $query = ['count' => 1000, 'sort_order' => 'desc'];
+        $query = ['count' => 1000/*, 'sort_order' => 'desc'*/];
         if (! empty($lastSyncTime = Cache::driver('file')->get('paypal.lastSyncTime'))) {
             $query['start_time'] = str_replace('+00:00', 'Z', $lastSyncTime->timezone(0)->toRfc3339String());
         }

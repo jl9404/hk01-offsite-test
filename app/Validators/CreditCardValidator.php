@@ -10,6 +10,11 @@ use Exception;
 class CreditCardValidator
 {
 
+    public function validateName($attribute, $value, $parameters, Validator $validator)
+    {
+        return strpos($value, ' ') !== false;
+    }
+
     public function validateCurrency($attribute, $value, $parameters, Validator $validator)
     {
         $number = array_get($validator->getData(), 'ccnumber');

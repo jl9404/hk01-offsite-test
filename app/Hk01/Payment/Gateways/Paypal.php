@@ -38,8 +38,11 @@ class Paypal implements GatewayContract
     public function purchase(array $data = [])
     {
         $name = array_get($data, 'ccname');
-        $lastName = last(explode(' ', $name));
-        $firstName = trim(str_replace($lastName, '', $name));
+        $lastName = last($name = explode(' ', $name));
+        $firstName = array_pop($name);
+        if (is_array($firstName)) {
+            $firstName = implode(' ', $firstName);
+        }
 
         $cardType = CreditCard::parse(array_get($data, 'ccnumber'))->getType();
 
@@ -68,6 +71,7 @@ class Paypal implements GatewayContract
         $transaction->setAmount($amount)
             ->setCustom(json_encode(array_except($data, ['ccname', 'ccnumber', 'ccmonth', 'ccyear', 'cvv'])))
             ->setDescription(array_get($data, 'customer_name') . ' ' . array_get($data, 'customer_phone'))
+            ->setNotifyUrl(route('notify.paypal'))
             ->setInvoiceNumber(array_get($data, 'transaction_id'));
 
         $payment = new Payment();

@@ -126,15 +126,16 @@ Route::get('/dev', function (){
 
 Route::get('/', function () {
     return view('payment.form');
-});
+})->name('payment.form');
 Route::get('/query', function () {
     return view('payment.query');
-});
+})->name('payment.query');
 
 
 Route::group(['middleware' => 'throttle:5,10'], function() {
     Route::post('/payment', 'PaymentController@store')->name('payment.store');
-    Route::post('/query', 'PaymentController@query')->name('payment.query');
+    Route::post('/query', 'PaymentController@query');
 });
 
 Route::post('/webhook/paypal', 'WebhookController@paypal');
+Route::post('/notify/paypal', 'NotifierController@paypal')->name('notify.paypal');
