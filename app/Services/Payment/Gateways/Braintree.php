@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Hk01\Payment\Gateways;
+namespace App\Services\Payment\Gateways;
 
-use App\Hk01\Payment\Contracts\GatewayContract;
-use App\Hk01\Payment\Gateways\Responses\BraintreeResponse;
-use App\Hk01\Payment\Order;
+use App\Services\Payment\Contracts\GatewayContract;
+use App\Services\Payment\Gateways\Responses\BraintreeResponse;
 use Braintree_ClientToken;
 use Braintree_Configuration;
 use Braintree_Transaction;
@@ -12,7 +11,7 @@ use Illuminate\Support\Arr;
 
 /**
  * Class Braintree
- * @package App\Hk01\Payment\Gateways
+ * @package App\Services\Payment\Gateways
  */
 class Braintree implements GatewayContract
 {

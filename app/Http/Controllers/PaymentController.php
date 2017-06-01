@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Hk01\Payment\CreditCard;
+use App\Services\Payment\CreditCard;
 use App\Http\Requests\PaymentQueryRequest;
 use App\Http\Requests\PaymentStoreRequest;
 use App\Jobs\CacheSync;
 use App\Models\Transaction;
 use Carbon\Carbon;
-use Facades\App\Hk01\Payment\Gateway;
+use Facades\App\Services\Payment\Gateway;
 use Illuminate\Support\Facades\Session;
 
 /**

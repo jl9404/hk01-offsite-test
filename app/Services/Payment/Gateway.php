@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Hk01\Payment;
+namespace App\Services\Payment;
 
-use App\Hk01\Payment\Contracts\FactoryContract;
-use App\Hk01\Payment\Gateways\Braintree;
-use App\Hk01\Payment\Gateways\Paypal;
+use App\Services\Payment\Contracts\FactoryContract;
+use App\Services\Payment\Gateways\Braintree;
+use App\Services\Payment\Gateways\Paypal;
 use Closure;
 use InvalidArgumentException;
 

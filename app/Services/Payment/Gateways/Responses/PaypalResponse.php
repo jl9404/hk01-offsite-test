@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Hk01\Payment\Gateways\Responses;
+namespace App\Services\Payment\Gateways\Responses;
 
-use App\Hk01\Payment\Contracts\ResponseContract;
+use App\Services\Payment\Contracts\ResponseContract;
 use Carbon\Carbon;
 
 class PaypalResponse implements ResponseContract

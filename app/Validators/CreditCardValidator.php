@@ -2,7 +2,7 @@
 
 namespace App\Validators;
 
-use App\Hk01\Payment\CreditCard;
+use App\Services\Payment\CreditCard;
 use Carbon\Carbon;
 use Illuminate\Validation\Validator;
 use Exception;

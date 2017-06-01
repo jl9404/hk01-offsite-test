@@ -1,4 +1,4 @@
-# HK01 Offsite Test (Backend)
+# Offsite Test (Backend)
 This application and documentation is prepared by Jason Leung. This repo should be only used for the HK01 offsite test or any education purpose.
 
 ## Installation
@@ -58,7 +58,7 @@ php artisan migrate
 Payment process related class:
 ```
 ├── App/
-|   └── Hk01/
+|   └── Services/
 |       └── Payment/
 |           ├── Contracts/
 |           |   ├── FactoryContract.php
@@ -91,7 +91,7 @@ Payment process related class:
 The `Gateway` class use singleton and factory pattern with the extend feature, so new payment gateway can be implemented easily. Also, there are `GatewayContract` and `ResponseContract` for gateway and gateway response which is inspired from the design of [Contract](https://laravel.com/docs/master/contracts) to enforce the standard of each gateway.
 
 ```php
-use Facades\App\Hk01\Payment\Gateway;
+use Facades\App\Services\Payment\Gateway;
 
 // to add Stripe gateway
 Gatway::extend('stripe', function () {

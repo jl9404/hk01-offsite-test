@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Hk01\Payment\Contracts;
+namespace App\Services\Payment\Contracts;
 
 interface FactoryContract
 {

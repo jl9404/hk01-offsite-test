@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Hk01\Payment\Gateways;
+namespace App\Services\Payment\Gateways;
 
-use App\Hk01\Payment\Contracts\GatewayContract;
-use App\Hk01\Payment\CreditCard;
-use App\Hk01\Payment\Gateways\Responses\PaypalResponse;
-use PayPal\Api\Address;
+use App\Services\Payment\Contracts\GatewayContract;
+use App\Services\Payment\CreditCard;
+use App\Services\Payment\Gateways\Responses\PaypalResponse;
 use PayPal\Api\Amount;
 use PayPal\Api\FundingInstrument;
 use PayPal\Api\Payer;
 use PayPal\Api\Payment;
 use PayPal\Api\PaymentCard;
-use PayPal\Api\PaymentExecution;
 use PayPal\Api\Transaction;
 use PayPal\Exception\PayPalConnectionException;
 

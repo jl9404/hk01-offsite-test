@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use Carbon\Carbon;
-use Facades\App\Hk01\Payment\Gateway;
+use Facades\App\Services\Payment\Gateway;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use PayPal\Api\Sale;

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Hk01\Payment\Gateway;
+use App\Services\Payment\Gateway;
 use Illuminate\Cache\RedisTaggedCache;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Validator;
@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
             return new Gateway;
         });
 
-        \Facades\App\Hk01\Payment\Gateway::extend('stripe', function () {
+        \Facades\App\Services\Payment\Gateway::extend('stripe', function () {
             return 'this is a customize driver';
         });
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Hk01\Payment;
+namespace App\Services\Payment;
 
 class CreditCard
 {
