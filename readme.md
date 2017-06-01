@@ -15,8 +15,8 @@ Software Requirements:
 
 Installation commands:
 ```bash
-git clone https://github.com/jl9404/hk01-offsite-test.git
-cd ./hk01-offsite-test
+git clone https://github.com/jl9404/offsite-test.git
+cd ./offsite-test
 composer install
 cp .env.example .env
 php artisan key:generate
