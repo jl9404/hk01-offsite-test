@@ -1,5 +1,5 @@
 # Offsite Test (Backend)
-This application and documentation is prepared by Jason Leung. This repo should be only used for the HK01 offsite test or any education purpose.
+This application and documentation is prepared by Jason Leung. This repo should be only used for the offsite test or any education purpose.
 
 ## Installation
 It is recommended to use [Homestead](https://laravel.com/docs/master/homestead) to deploy this application as it provides all the essential software with simple configuration and installation.
