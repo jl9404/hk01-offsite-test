@@ -21,6 +21,7 @@ class CreateTransactionsTable extends Migration
             $table->string('customer_phone');
             $table->string('currency', 3);
             $table->decimal('amount', 10, 2);
+            $table->text('debug');
             $table->timestamp('paid_at');
             $table->timestamps();
         });

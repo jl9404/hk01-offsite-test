@@ -69,6 +69,7 @@ class PaypalSync implements ShouldQueue
                         }
                         $transaction->currency = $payment->transactions[0]->amount->currency;
                         $transaction->amount = $payment->transactions[0]->amount->total;
+                        $transaction->debug = serialize($payment);
                         $transaction->paid_at = \Carbon\Carbon::parse($payment->create_time)->timezone(config('app.timezone'));
                         $transaction->save();
                     }

@@ -87,7 +87,7 @@ class Paypal implements GatewayContract
             $payment->create($this->context);
         }catch(PayPalConnectionException $e){
             $data = json_decode($e->getData());
-            $errors = $data->message . ' (#' . $e->getCode() . ')';
+            $errors = ($data->message ?: '') . ' (#' . $e->getCode() . ')';
         } catch (\Exception $e) {
         }
 

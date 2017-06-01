@@ -18,8 +18,8 @@ Route::get('/query', function () {
     return view('payment.query');
 })->name('payment.query');
 
-
-Route::group(['middleware' => 'throttle:5,10'], function() {
+// Throttling middleware? Avoid spamming
+Route::group(['middleware' => 'throttle:10,10'], function() {
     Route::post('/payment', 'PaymentController@store')->name('payment.store');
     Route::post('/query', 'PaymentController@query');
 });

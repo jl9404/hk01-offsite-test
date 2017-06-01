@@ -59,7 +59,7 @@
             </div>
             <div class="col-sm-6">
                 <label for="cvv">CVV</label>
-                <input type="text" class="form-control" id="cvv" name="cvv" />
+                <input type="password" class="form-control" id="cvv" name="cvv" />
             </div>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>

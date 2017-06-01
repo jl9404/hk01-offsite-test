@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Hk01\Payment\CreditCard;
 use App\Http\Requests\PaymentQueryRequest;
 use App\Http\Requests\PaymentStoreRequest;
 use App\Jobs\CacheSync;
@@ -24,7 +25,7 @@ class PaymentController extends Controller
     {
         $transactionId = Carbon::now()->format('YmdHis') . random_int(1000, 9999);
 
-        if (in_array($request->currency, ['USD', 'EUR', 'AUD'])) {
+        if (in_array($request->currency, ['USD', 'EUR', 'AUD']) || CreditCard::parse($request->ccnumber)->getType() === 'amex') {
             $gateway = Gateway::driver('paypal');
         } else if (in_array($request->currency, ['HKD', 'JPY', 'CNY'])) {
             $gateway = Gateway::driver('braintree');
