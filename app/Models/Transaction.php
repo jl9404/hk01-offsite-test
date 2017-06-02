@@ -36,7 +36,7 @@ class Transaction extends Model
      * @var array
      */
     protected $hidden = [
-        'id', 'reference_id', 'paid_at',
+        'id', 'reference_id', 'paid_at', 'debug'
     ];
 
     /**
