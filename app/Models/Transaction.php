@@ -49,7 +49,7 @@ class Transaction extends Model
         static::saved(function (Transaction $transaction) {
             Cache::driver('redis')
                 ->tags(['orders', snake_case($transaction->customer_name)])
-                ->forever($transaction->transaction_id, encrypt(serialize($transaction)));
+                ->forever($transaction->transaction_id, encrypt(serialize($transaction->getAttributes())));
         });
 
         static::deleting(function (Transaction $transaction) {
@@ -96,7 +96,9 @@ class Transaction extends Model
             throw new ModelNotFoundException;
         }
         try {
-            return unserialize(decrypt($transaction));
+            // trying to use the most updated model
+            $transaction = unserialize(decrypt($transaction));
+            return new self(($transaction instanceof Model ? $transaction->getAttributes() : $transaction));
         } catch (DecryptException $e) { // try to refresh the corrupted cache
             return tap((new self)->where([
                 'customer_name' => $customerName,
