@@ -2,11 +2,8 @@
 
 namespace App\Models;
 
-use App\Jobs\PaypalSync;
-use Illuminate\Contracts\Encryption\DecryptException;
+use App\Models\Traits\Cacheable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Class Transaction
@@ -14,6 +11,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class Transaction extends Model
 {
+    use Cacheable;
     /**
      * @var array
      */
@@ -39,73 +37,9 @@ class Transaction extends Model
         'id', 'reference_id', 'paid_at', 'debug'
     ];
 
-    /**
-     * Register events to cache and remove cache
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saved(function (Transaction $transaction) {
-            Cache::driver('redis')
-                ->tags(['orders', snake_case($transaction->customer_name)])
-                ->forever($transaction->transaction_id, encrypt(serialize($transaction->getAttributes())));
-        });
-
-        static::deleting(function (Transaction $transaction) {
-            Cache::driver('redis')
-                ->tags(['orders', snake_case($transaction->customer_name)])
-                ->forget($transaction->transaction_id);
-        });
-    }
-
-    /**
-     * Check whether the record is cached
-     *
-     * @return bool
-     */
-    public function isCached()
-    {
-        if ($this->exists && Cache::tags(['orders', snake_case($this->customer_name)])->has($this->transaction_id)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check whether the record is not cached
-     *
-     * @return bool
-     */
-    public function isNotCached()
-    {
-        return ! $this->isCached();
-    }
-
-    /**
-     * Find record from cache
-     *
-     * @param $customerName
-     * @param $transactionId
-     * @return mixed
-     */
-    public static function findFromCache($customerName, $transactionId)
-    {
-        $transaction = Cache::tags(['orders', snake_case($customerName)])->get($transactionId);
-        if (empty($transaction)) {
-            throw new ModelNotFoundException;
-        }
-        try {
-            // trying to use the most updated model
-            $transaction = unserialize(decrypt($transaction));
-            return new self(($transaction instanceof Model ? $transaction->getAttributes() : $transaction));
-        } catch (DecryptException $e) { // try to refresh the corrupted cache
-            return tap((new self)->where([
-                'customer_name' => $customerName,
-                'transaction_id' => $transactionId,
-            ])->first())->save();
-        }
-    }
+    protected $cacheIdentifier = [
+        'customer_name', 'transaction_id'
+    ];
 
     /**
      * Amount attribute mutator

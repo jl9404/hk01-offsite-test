@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Validators;
+namespace App\Services\Payment\Validators;
 
 use App\Services\Payment\CreditCard;
 use Carbon\Carbon;

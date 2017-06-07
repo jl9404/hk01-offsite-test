@@ -13,18 +13,6 @@ class CacheSync implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $transaction_id;
-
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct($transaction_id = null)
-    {
-        $this->transaction_id = $transaction_id;
-    }
-
     /**
      * Execute the job.
      *
@@ -32,13 +20,6 @@ class CacheSync implements ShouldQueue
      */
     public function handle()
     {
-        if (! empty($this->transaction_id)) {
-            $transaction = Transaction::where('transaction_id', $this->transaction_id)->get();
-            if ($transaction->isNotCached()) {
-                $transaction->save();
-            }
-            return;
-        }
-        Transaction::all()->filter->isNotCached()->each->save();
+        Transaction::all()->each->save();
     }
 }

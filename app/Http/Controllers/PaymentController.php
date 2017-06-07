@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Payment\CreditCard;
-use App\Http\Requests\PaymentQueryRequest;
-use App\Http\Requests\PaymentStoreRequest;
-use App\Jobs\CacheSync;
 use App\Models\Transaction;
-use Carbon\Carbon;
-use Facades\App\Services\Payment\Gateway;
+use App\Services\PaymentService;
+use App\Services\Payment\Requests\PaymentQueryRequest;
+use App\Services\Payment\Requests\PaymentStoreRequest;
 use Illuminate\Support\Facades\Session;
 
 /**
@@ -17,45 +14,43 @@ use Illuminate\Support\Facades\Session;
  */
 class PaymentController extends Controller
 {
+
+    protected $paymentService;
+
+
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
+
     /**
      * @param PaymentStoreRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(PaymentStoreRequest $request)
     {
-        $transactionId = Carbon::now()->format('YmdHis') . random_int(1000, 9999);
+        $attributes = $request->validated();
 
-        if (in_array($request->currency, ['USD', 'EUR', 'AUD']) || CreditCard::parse($request->ccnumber)->getType() === 'amex') {
-            $gateway = Gateway::driver('paypal');
-        } else if (in_array($request->currency, ['HKD', 'JPY', 'CNY'])) {
-            $gateway = Gateway::driver('braintree');
-        }
+        $transactionId = $this->paymentService->generateTransactionId();
+
+        $gateway = $this->paymentService->getGateway($request->currency);
 
         if (empty($gateway)) {
             return abort(400);
         }
 
-        $result = $gateway->purchase(array_merge($request->validated(), ['transaction_id' => $transactionId]));
+        $response = $this->paymentService->makePayment($attributes);
 
-        $response = [
-            'success' => $result->isSuccessful(),
-        ];
-
-        if ($result->isSuccessful()) {
-            $transaction = new Transaction($request->validated());
-            $transaction->transaction_id = $transactionId;
-            $transaction->reference_id = $result->getReferenceId();
-            $transaction->paid_at = $result->getPaidTimestamp();
-            $transaction->debug = serialize($result->getDebugData());
-            $transaction->save();
-            $response['order'] = $transaction;
-            Session::regenerateToken();
-            dispatch(new CacheSync($transactionId));
-        } else {
-            $response['message'] = $result->getErrors();
-        }
-
-        return response()->json($response, 201);
+        return response()->json(tap([
+            'success' => $response->isSuccessful(),
+        ], function (&$payload) use ($response, $attributes) {
+            if ($response->isSuccessful()) {
+                $payload['order'] = $this->paymentService->saveRecord($attributes, $response);
+                Session::regenerateToken();
+            } else {
+                $payload['message'] = $result->getErrors();
+            }
+        }), ($response->isSuccessful() ? 201 : 500));
     }
 
     /**
@@ -64,7 +59,10 @@ class PaymentController extends Controller
      */
     public function query(PaymentQueryRequest $request)
     {
-        $order = Transaction::findFromCache($request->customer_name, $request->transaction_id);
+        $order = Transaction::findFromCache([
+            'customer_name' => $request->customer_name, 
+            'transaction_id' => $request->transaction_id
+        ]);
 
         return response()->json([
            'success' => true,
