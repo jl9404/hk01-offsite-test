@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Cache;
 
 trait Cacheable
 {
-	public static function bootCacheable()
-	{
-		static::saved(function ($model) {
+    public static function bootCacheable()
+    {
+        static::saved(function ($model) {
             if (! $model->canBeCached()) {
                 return ;
             }
@@ -29,7 +29,7 @@ trait Cacheable
                 ->tags(get_class($model))
                 ->forget($model->computeCacheKey());
         });
-	}
+    }
 
     public function canBeCached()
     {
@@ -43,19 +43,19 @@ trait Cacheable
         })->filter()->implode(','));
     }
 
-	public static function findFromCache(array $attributes = [])
-	{
-		$model = new self;
+    public static function findFromCache(array $attributes = [])
+    {
+        $model = new self;
         $data = Cache::driver('redis')->tags(get_class($model))->get($model->computeCacheKey($attributes));
 
-		if (empty ($data)) {
-			throw new ModelNotFoundException;
-		}
+        if (empty ($data)) {
+            throw new ModelNotFoundException;
+        }
 
         try {
             return $model->newInstance(decrypt($data), true);
         } catch (DecryptException $e) {
             return tap($model->newQuery()->where($attributes)->first())->save();
         }
-	}
+    }
 }
