@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use App\Services\Payment\Contracts\ResponseContract;
 use App\Services\PaymentService;
 use App\Services\Payment\Requests\PaymentQueryRequest;
 use App\Services\Payment\Requests\PaymentStoreRequest;
@@ -14,9 +15,7 @@ use Illuminate\Support\Facades\Session;
  */
 class PaymentController extends Controller
 {
-
     protected $paymentService;
-
 
     public function __construct(PaymentService $paymentService)
     {
@@ -31,14 +30,13 @@ class PaymentController extends Controller
     {
         $attributes = $request->validated();
 
-        $transactionId = $this->paymentService->generateTransactionId();
+        $this->paymentService->generateTransactionId();
 
-        $gateway = $this->paymentService->getGateway($request->currency);
-
-        if (empty($gateway)) {
+        if (empty($this->paymentService->getGateway($request->currency))) {
             return abort(400);
         }
 
+        /** @var ResponseContract $response */
         $response = $this->paymentService->makePayment($attributes);
 
         return response()->json(tap([
@@ -48,7 +46,7 @@ class PaymentController extends Controller
                 $payload['order'] = $this->paymentService->saveRecord($attributes, $response);
                 Session::regenerateToken();
             } else {
-                $payload['message'] = $result->getErrors();
+                $payload['message'] = $response->getErrors();
             }
         }), ($response->isSuccessful() ? 201 : 500));
     }
