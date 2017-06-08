@@ -18,58 +18,33 @@ class CacheSyncJobTest extends TestCase
         $this->assertTrue(class_exists(CacheSync::class));
     }
 
-    public function testClassConstructor()
-    {
-    	$job = new CacheSync;
-
-    	$this->assertSame(null, $this->getObjectAttribute($job, 'transaction_id'));
-
-    	$job = new CacheSync('transaction_id');
-
-    	$this->assertSame('transaction_id', $this->getObjectAttribute($job, 'transaction_id'));
-    }
-
-    public function testCacheSyncByTransactionId()
-    {
-    	$transaction = factory(Transaction::class)->create();
-
-    	$this->assertTrue($transaction->isCached());
-
-    	Cache::flush();
-    
-    	$this->assertTrue($transaction->isNotCached());
-
-    	(new CacheSync($transaction->id))->dispatch();
-
-    	$this->assertTrue($transaction->isCached());
-
-    	$this->assertInstanceOf(Transaction::class, Transaction::findFromCache($transaction->customer_name, $transaction->transaction_id));
-
-    	Cache::flush();
-    }
-
     public function testCacheSyncWholeTable()
     {
     	$transactions = factory(Transaction::class, 3)->create();
 
     	$transactions->each(function ($transaction) {
-    		$this->assertTrue($transaction->isCached());
+    		$this->assertNotEmpty($this->getCache()->get($transaction->computeCacheKey()));
     	});
 
     	Cache::flush();
     	
     	$transactions->each(function ($transaction) {
-    		$this->assertTrue($transaction->isNotCached());
+            $this->assertEmpty($this->getCache()->get($transaction->computeCacheKey()));
     	});
 
     	(new CacheSync)->dispatch();
 
     	$transactions->each(function ($transaction) {
-    		$this->assertTrue($transaction->isCached());
+            $this->assertNotEmpty($this->getCache()->get($transaction->computeCacheKey()));
     	});
 
-    	$this->assertEquals(3, count(Cache::tags(['orders'])->getKeys()));
+    	$this->assertEquals(3, count($this->getCache()->getKeys()));
 
     	Cache::flush();
+    }
+
+    protected function getCache()
+    {
+        return Cache::driver('redis')->tags(Transaction::class);
     }
 }

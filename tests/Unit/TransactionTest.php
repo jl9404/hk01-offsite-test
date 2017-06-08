@@ -3,14 +3,10 @@
 namespace Tests\Unit;
 
 use App\Models\Transaction;
-use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Encryption\Encrypter;
 use Illuminate\Encryption\EncryptionServiceProvider;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -56,13 +52,14 @@ class TransactionTest extends TestCase
     {
         $transaction = factory(Transaction::class)->create();
 
-        $cache = new Transaction(unserialize(decrypt(Cache::driver('redis')->tags(['orders', snake_case($transaction->customer_name)])->get($transaction->transaction_id))));
+        $cacheData = decrypt($this->getCache()->get($transaction->computeCacheKey()));
 
-        $this->assertInstanceOf(Transaction::class, $cache);
+        $this->assertNotEmpty($cacheData);
 
-        $this->assertTrue($transaction->isCached());
-
-        $this->assertInstanceOf(Transaction::class, Transaction::findFromCache($transaction->customer_name, $transaction->transaction_id));
+        $this->assertInstanceOf(Transaction::class, $cache = Transaction::findFromCache([
+            'customer_name' => $transaction->customer_name,
+            'transaction_id' => $transaction->transaction_id
+        ]));
 
         $this->assertArraySubset($cache->getAttributes(), $transaction->getAttributes());
 
@@ -73,8 +70,6 @@ class TransactionTest extends TestCase
     {
         $transaction = factory(Transaction::class)->create();
 
-        $this->assertTrue($transaction->isCached());
-
         $oldKey = config('app.key');
 
         $this->artisan('key:generate');
@@ -82,7 +77,10 @@ class TransactionTest extends TestCase
         $this->rebindEncrypterSingleton();
 
         try {
-            $cache = Transaction::findFromCache($transaction->customer_name, $transaction->transaction_id);
+            $cache = Transaction::findFromCache([
+                'customer_name' => $transaction->customer_name,
+                'transaction_id' => $transaction->transaction_id
+            ]);
             $this->assertInstanceOf(Transaction::class, $cache);
         } catch (\Exception $e) {
             $this->fail($e->getMessage());
@@ -95,17 +93,16 @@ class TransactionTest extends TestCase
     {
         $transaction = factory(Transaction::class)->create();
 
-        $this->assertTrue($transaction->isCached());
-
         $clone = clone $transaction;
 
         $transaction->delete();
 
-        $this->assertEquals(true, $clone->isNotCached());
-
         $this->expectException(ModelNotFoundException::class);
 
-        Transaction::findFromCache($clone->customer_name, $clone->transaction_id);
+        Transaction::findFromCache([
+            'customer_name' => $clone->customer_name,
+            'transaction_id' => $clone->transaction_id
+        ]);
 
         Cache::flush();
     }
@@ -113,6 +110,11 @@ class TransactionTest extends TestCase
     protected function rebindEncrypterSingleton()
     {
         $this->app->register(EncryptionServiceProvider::class, [], true);
+    }
+
+    protected function getCache()
+    {
+        return Cache::driver('redis')->tags(Transaction::class);
     }
 
 }

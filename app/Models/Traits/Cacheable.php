@@ -20,7 +20,7 @@ trait Cacheable
                 ->forever($model->computeCacheKey(), encrypt($model->getAttributes()));
         });
 
-        static::deleting(function (Transaction $transaction) {
+        static::deleting(function ($model) {
             if (! $model->canBeCached()) {
                 return ;
             }
@@ -36,7 +36,7 @@ trait Cacheable
         return count($this->cacheIdentifier) > 0;
     }
 
-    protected function computeCacheKey(array $attributes = [])
+    public function computeCacheKey(array $attributes = [])
     {
         return sha1(collect($this->cacheIdentifier)->map(function ($key) use ($attributes) {
             return array_get($attributes, $key, $this->{$key});
