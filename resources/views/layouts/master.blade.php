@@ -78,7 +78,7 @@ $(function() {
   {
     if (xhr.status === 422) {
       renderErrs(xhr.responseJSON, $form);
-    } else if(xhr.status === 400) {
+    } else if(xhr.status === 400 || xhr.status === 500) {
       swal("Oops...", "Something went wrong...", "error");
     } else if (xhr.status === 404) {
       swal("Oops...", "Record is not existed.", "error");
