@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Services\Payment\Contracts\FactoryContract;
 use App\Services\Payment\Contracts\GatewayContract;
 use App\Services\Payment\Gateway;
+use App\Services\Payment\Providers\PaymentServiceProvider;
 use Facades\App\Services\Payment\Gateway as GatewayFacade;
 use App\Services\Payment\Gateways\Braintree;
 use App\Services\Payment\Gateways\Paypal;
@@ -83,7 +84,7 @@ class GatewayFactoryTest extends TestCase
 
     public function getGateway()
     {
-        $this->app->singleton(Gateway::class);
+        $this->app->register(PaymentServiceProvider::class, [], true);
         return $this->app->make(Gateway::class);
     }
 }
