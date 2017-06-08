@@ -3,28 +3,38 @@
 namespace App\Services\Payment;
 
 use App\Services\Payment\Contracts\FactoryContract;
+use App\Services\Payment\Contracts\GatewayContract;
 use App\Services\Payment\Gateways\Braintree;
 use App\Services\Payment\Gateways\Paypal;
 use Closure;
+use Illuminate\Foundation\Application;
 use InvalidArgumentException;
 
 class Gateway implements FactoryContract
 {
+    protected $app;
+
     protected $customStores;
 
     protected $store;
 
+    public function __construct(Application $app)
+    {
+        $this->app = $app;
+    }
+
     public function driver($driver)
     {
-        return $this->store[$driver] = $this->get($driver);
+        return $this->has($driver) ? $this->store[$driver] : $this->store[$driver] = $this->get($driver);
+    }
+
+    public function has($driver)
+    {
+        return isset($this->store[$driver]);
     }
 
     public function get($driver)
     {
-        if (isset($this->store[$driver])) {
-            return $this->store[$driver];
-        }
-
         $config = config('services.' . strtolower($driver));
 
         if (is_null($config)) {
@@ -46,18 +56,25 @@ class Gateway implements FactoryContract
 
     protected function createBraintreeDriver(array $config = [])
     {
-        return new Braintree($config);
+        return $this->resolve(Braintree::class, $config);
     }
 
     protected function createPaypalDriver(array $config = [])
     {
-        return new Paypal($config);
+        return $this->resolve(Paypal::class, $config);
     }
 
-    public function extend($driver, Closure $callback)
+    public function extend($driver, $class)
     {
-        $this->customStores[$driver] = $callback;
+        $this->customStores[$driver] = function ($config) use ($class) {
+            return $this->resolve($class, $config);
+        };
         return $this;
+    }
+
+    protected function resolve($class, $config)
+    {
+        return $this->app->makeWith($class, ['config' => $config]);
     }
 
 }

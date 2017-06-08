@@ -9,6 +9,7 @@ use App\Services\Payment\Providers\PaymentServiceProvider;
 use Facades\App\Services\Payment\Gateway as GatewayFacade;
 use App\Services\Payment\Gateways\Braintree;
 use App\Services\Payment\Gateways\Paypal;
+use Tests\FakeGateway;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -54,9 +55,7 @@ class GatewayFactoryTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Driver [no-config] is not defined.');
 
-        $gateway->extend('no-config', function () {
-            return 'no-config class';
-        });
+        $gateway->extend('no-config', FakeGateway::class);
 
         $gateway->driver('no-config');
     }
@@ -75,11 +74,9 @@ class GatewayFactoryTest extends TestCase
     {
         $gateway = $this->getGateway();
 
-        $gateway->extend('stripe', function () {
-            return 'stripe class';
-        });
+        $gateway->extend('stripe', FakeGateway::class);
 
-        $this->assertEquals('stripe class', $gateway->driver('stripe'));
+        $this->assertInstanceOf(FakeGateway::class, $gateway->driver('stripe'));
     }
 
     public function getGateway()
