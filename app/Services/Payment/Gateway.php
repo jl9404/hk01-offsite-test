@@ -72,7 +72,7 @@ class Gateway implements FactoryContract
         return $this;
     }
 
-    protected function resolve($class, $config)
+    protected function resolve($class, $config) : GatewayContract
     {
         return $this->app->makeWith($class, ['config' => $config]);
     }
